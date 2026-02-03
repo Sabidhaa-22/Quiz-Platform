@@ -4,32 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Simple Quiz</title>
-  <style>
-    * { box-sizing: border-box; }
-    body { font-family: system-ui, sans-serif; margin: 0; padding: 20px; background: #f1f5f9; min-height: 100vh; }
-    .container { max-width: 500px; margin: 0 auto; }
-    h1 { color: #0f172a; margin-top: 0; }
-    .card { background: white; border-radius: 12px; padding: 24px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
-    input, select, button { font-size: 1rem; padding: 10px 14px; border-radius: 8px; border: 1px solid #e2e8f0; width: 100%; margin-bottom: 12px; }
-    button { background: #0ea5e9; color: white; border: none; cursor: pointer; font-weight: 600; }
-    button:hover { background: #0284c7; }
-    button.secondary { background: #e2e8f0; color: #334155; }
-    button.secondary:hover { background: #cbd5e1; }
-    .hidden { display: none !important; }
-    .flex { display: flex; gap: 12px; align-items: center; }
-    .timer { font-size: 1.25rem; font-weight: 700; color: #0ea5e9; }
-    .timer.low { color: #dc2626; }
-    .progress { height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; margin: 12px 0; }
-    .progress-bar { height: 100%; background: #0ea5e9; transition: width 0.2s; }
-    label { display: block; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 8px; cursor: pointer; }
-    label:hover, label:has(input:checked) { border-color: #0ea5e9; background: #f0f9ff; }
-    .score { font-size: 1.5rem; font-weight: 700; color: #0ea5e9; }
-    .correct { color: #16a34a; }
-    .wrong { color: #dc2626; }
-    .small { font-size: 0.875rem; color: #64748b; }
-    a { color: #0ea5e9; text-decoration: none; }
-    a:hover { text-decoration: underline; }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="container">
@@ -39,6 +14,7 @@
       <p class="small">Enter your name to start (no backend).</p>
       <input type="text" id="login-name" placeholder="Your name" autocomplete="off">
       <button type="button" id="btn-login">Enter</button>
+      <p class="small" style="margin-bottom:0"><a href="about.html">About</a></p>
     </div>
 
     <!-- QUIZ LIST -->
@@ -81,112 +57,7 @@
     </div>
   </div>
 
-  <script>
-    // Mock data
-    const quizzes = [
-      { id: 1, title: 'General Knowledge', duration: 2, questions: [
-        { text: 'What is 2 + 2?', options: ['3', '4', '5', '6'], correct: '4', marks: 1 },
-        { text: 'Capital of France?', options: ['London', 'Berlin', 'Paris', 'Madrid'], correct: 'Paris', marks: 1 },
-        { text: 'Largest planet?', options: ['Earth', 'Mars', 'Jupiter', 'Saturn'], correct: 'Jupiter', marks: 1 },
-      ]},
-      { id: 2, title: 'Quick Quiz', duration: 1, questions: [
-        { text: '1 + 1 = ?', options: ['1', '2', '3'], correct: '2', marks: 1 },
-        { text: 'Red + Blue = ?', options: ['Green', 'Yellow', 'Purple'], correct: 'Purple', marks: 1 },
-      ]},
-    ];
-
-    let user = null;
-    let currentQuiz = null;
-    let currentQ = 0;
-    let answers = {};
-    let timerId = null;
-    let timeLeft = 0;
-
-    const $ = (id) => document.getElementById(id);
-    const show = (id) => { ['screen-login','screen-list','screen-quiz','screen-results'].forEach(s => $(s).classList.add('hidden')); $(id).classList.remove('hidden'); };
-
-    function shuffle(arr) {
-      const a = [...arr];
-      for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
-      return a;
-    }
-
-    function startQuiz(quiz) {
-      currentQuiz = { ...quiz, questions: shuffle(quiz.questions).map(q => ({ ...q, options: shuffle(q.options) })) };
-      currentQ = 0;
-      answers = {};
-      timeLeft = currentQuiz.duration * 60;
-      show('screen-quiz');
-      $('quiz-title').textContent = currentQuiz.title;
-      renderQuestion();
-      startTimer();
-    }
-
-    function startTimer() {
-      if (timerId) clearInterval(timerId);
-      function tick() {
-        const m = Math.floor(timeLeft / 60), s = timeLeft % 60;
-        $('quiz-timer').textContent = m + ':' + (s < 10 ? '0' : '') + s;
-        $('quiz-timer').className = timeLeft <= 60 ? 'timer low' : 'timer';
-        if (timeLeft <= 0) { clearInterval(timerId); submitQuiz(); return; }
-        timeLeft--;
-      }
-      tick();
-      timerId = setInterval(tick, 1000);
-    }
-
-    function renderQuestion() {
-      const q = currentQuiz.questions[currentQ];
-      $('q-num').textContent = currentQ + 1;
-      $('q-total').textContent = currentQuiz.questions.length;
-      $('quiz-progress').style.width = ((currentQ + 1) / currentQuiz.questions.length * 100) + '%';
-      $('question-text').textContent = q.text;
-      $('question-options').innerHTML = q.options.map(opt =>
-        '<label><input type="radio" name="q" value="' + opt.replace(/"/g, '&quot;') + '"' + (answers[q.text] === opt ? ' checked' : '') + '> ' + opt + '</label>'
-      ).join('');
-      $('question-options').querySelectorAll('input').forEach(inp => inp.addEventListener('change', () => answers[q.text] = inp.value));
-      $('btn-prev').style.visibility = currentQ === 0 ? 'hidden' : 'visible';
-      $('btn-next').textContent = currentQ === currentQuiz.questions.length - 1 ? 'Submit' : 'Next';
-    }
-
-    function submitQuiz() {
-      if (timerId) { clearInterval(timerId); timerId = null; }
-      let score = 0, total = 0;
-      currentQuiz.questions.forEach(q => {
-        total += q.marks;
-        if (answers[q.text] === q.correct) score += q.marks;
-      });
-      const correct = currentQuiz.questions.filter(q => answers[q.text] === q.correct).length;
-      const wrong = currentQuiz.questions.filter(q => answers[q.text] && answers[q.text] !== q.correct).length;
-      show('screen-results');
-      $('result-quiz-name').textContent = currentQuiz.title;
-      $('result-score').textContent = score;
-      $('result-total').textContent = total;
-      $('result-summary').textContent = correct + ' correct, ' + wrong + ' wrong.';
-    }
-
-    $('btn-login').onclick = () => {
-      const name = $('login-name').value.trim();
-      if (!name) return alert('Enter your name');
-      user = { name };
-      $('user-name').textContent = name;
-      show('screen-list');
-      $('quiz-list').innerHTML = quizzes.map(q =>
-        '<div class="card"><h3 style="margin-top:0">' + q.title + '</h3><p class="small">' + q.questions.length + ' questions, ' + q.duration + ' min</p><button type="button" data-id="' + q.id + '">Start</button></div>'
-      ).join('');
-      $('quiz-list').querySelectorAll('button').forEach(btn => btn.onclick = () => startQuiz(quizzes.find(z => z.id === parseInt(btn.dataset.id))));
-    };
-
-    $('btn-logout').onclick = () => { user = null; show('screen-login'); };
-    $('btn-prev').onclick = () => { const q = currentQuiz.questions[currentQ]; const r = $('question-options').querySelector('input:checked'); if (r) answers[q.text] = r.value; currentQ--; renderQuestion(); };
-    $('btn-next').onclick = () => {
-      const q = currentQuiz.questions[currentQ];
-      const r = $('question-options').querySelector('input:checked');
-      if (r) answers[q.text] = r.value;
-      if (currentQ === currentQuiz.questions.length - 1) submitQuiz();
-      else { currentQ++; renderQuestion(); }
-    };
-    $('btn-back-list').onclick = () => show('screen-list');
-  </script>
+  <script src="quiz-data.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>

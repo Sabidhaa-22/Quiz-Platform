@@ -25,9 +25,16 @@ A minimal, standalone quiz app that runs entirely in the browser. No backend, no
 - Mock quiz data (no API or database).
 - Works offline once the file is loaded.
 
-## File
+## Files
 
-- `index.html` — Contains the full app (markup, styles, script, and sample quizzes).
+| File | Purpose |
+|------|---------|
+| `index.html` | Main app (entry point) |
+| `style.css` | All styles |
+| `quiz-data.js` | Quiz content — edit this to add or change quizzes |
+| `app.js` | Quiz logic (timer, navigation, scoring) |
+| `about.html` | About page |
+| `.gitignore` | Ignore OS/editor files if using Git |
 
 ## License
 
